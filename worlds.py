@@ -63,8 +63,10 @@ class BaseWorld():
                 move = o.move(environment)
                 if move is Moves.FORWARD:
                     self.relocate_by_direction(self.organisms[o], o.orientation)
-                elif move in (Moves.LEFT, Moves.RIGHT):
-                    pass # TODO
+                elif move is Moves.LEFT:
+                    o.rotate(Directions.COUNTER_CLOCKWISE)
+                elif move is Moves.RIGHT:
+                    o.rotate(Directions.CLOCKWISE)
                 elif move is Moves.EAT:
                     pass # TODO
                 if o.alive:

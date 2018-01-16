@@ -21,6 +21,7 @@ class Protozoa():
         orientation - cardinal direction to face when spawned,
             is random if not provided"""
 
+    symbol = 'P'
     calories = 0
     hydration = 0
     default_move = Moves.WAIT
@@ -74,11 +75,17 @@ class Protozoa():
             move = Moves.DEAD
         return move
 
-    # TODO: rotate 90 method
+    def rotate(self, clockwise = True):
+        """Changes the creature's cardinal orientation."""
+        cur_dir = ORDER_OF_CARDINAL_DIRECTIONS.index(self.orientation)
+        rotate_dir = -1 if clockwise else 1
+        new_dir = (cur_dir + rotate_dir) % len(ORDER_OF_CARDINAL_DIRECTIONS)
+        self.orientation = ORDER_OF_CARDINAL_DIRECTIONS[new_dir]
 
 
 class Stagnator(Protozoa):
     """An orgasm that sits in a stationary location until it dies."""
+    symbol = 'S'
     hydration = 10
 
 

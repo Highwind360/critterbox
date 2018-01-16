@@ -23,6 +23,14 @@ class Directions(Enum):
     WEST = 2
     SOUTH = 3
 
+# The order in which cardinal directions would be traversed moving counterclockwise
+ORDER_OF_CARDINAL_DIRECTIONS = [
+    Directions.EAST,
+    Directions.NORTH,
+    Directions.WEST,
+    Directions.SOUTH
+]
+
 
 class StaticObjects(Enum):
     BOUNDARY = -1
