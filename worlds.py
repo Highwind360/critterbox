@@ -39,7 +39,7 @@ class BaseWorld():
         self.width = dimensions[0]
         self.height = dimensions[1]
         # TODO: Abstract grid and grid spaces into metadata classes
-        self.grid = [StaticObjects.EMPTY] * self.width * self.height
+        self.grid = [StaticObjects.EMPTY] * (self.width * self.height)
         self.organisms = {}
 
         for organism in organisms:

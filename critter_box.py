@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-e2s.py
+critter_box.py
 highwind
 
-Equivalent exchange simulator. Creates a world in which organisms are born,
+The CitterBox creates a world in which organisms are born,
 survive, and take on their parents traits. It's an experiment performed to
-evaluate the process of natural selection and the effects of imposing contrived
+play with the process of natural selection and the effects of imposing contrived
 regulaions on a free market.
 """
 

@@ -5,7 +5,7 @@ highwind
 Organisms for the sim, such as food and regular creatures.
 """
 
-from .constants import Moves
+from .constants import Moves, Directions
 
 
 class Protozoa():
@@ -29,7 +29,7 @@ class Protozoa():
     #   shelter
     #   reproduce
 
-    def __init__(self, ident, alive = True, orientation = None):
+    def __init__(self, ident, alive = True, orientation = Directions.NORTH):
         self.orientation = orientation
         self.alive = alive
         if type(ident) is not int or ident < 0 or ident > 0xffffffff:
@@ -37,10 +37,14 @@ class Protozoa():
                              " Instead got: {}".format(ident))
         self.organism_identifier = ident
 
+    def __str__(self):
+        """Returns the representation of the organism."""
+        return self.symbol
+
     @property
     def name(self):
         """Returns the classname with id appended, as a string."""
-        return "".format(self.__class__.__name__, self.organism_identifier)
+        return "{}#{}".format(self.__class__.__name__, self.organism_identifier)
 
     def think(self, info):
         """The important logic for an organism's decision making goes here.
@@ -77,13 +81,12 @@ class Stagnator(Protozoa):
     """An orgasm that sits in a stationary location until it dies."""
     hydration = 10
 
-class LoudWalker(Protozoa):
-    """An organism that walks straight and announces each time it does so."""
-    hydration = 20
+
+class Walker(Protozoa):
+    """An organism that walks straight in a line."""
+    symbol = 'W'
     calories = 10
+    hydration = 20
 
     def think(self, info):
-        print(info)
-        print("I'm facing {}. There is a {} in front of me".format(
-            self.orientation, info[self.orientation]))
         return Moves.FORWARD

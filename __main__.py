@@ -1,2 +1,2 @@
-from .e2s import main
+from .critter_box import main
 main()
