@@ -84,7 +84,9 @@ class BaseWorld():
                 elif move is Moves.RIGHT:
                     o.rotate(Directions.CLOCKWISE)
                 elif move is Moves.EAT:
-                    pass # TODO
+                    in_front = environment[o.orientation]
+                    if issubclass(type(in_front), organisms.Protozoa):
+                        pass # TODO: damage the thing and give calories
                 if o.alive:
                     living_organisms += 1
             if living_organisms is 0:

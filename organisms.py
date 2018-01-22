@@ -29,6 +29,7 @@ class Protozoa():
     #   eat/drink
     #   shelter
     #   reproduce
+    #   health (damaged when bitten or attacked)
 
     def __init__(self, ident, alive = True, orientation = Directions.NORTH):
         self.orientation = orientation

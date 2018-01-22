@@ -8,6 +8,7 @@ A collection of all the constant values.
 from enum import Enum
 
 
+# TODO: attack, defend
 class Moves(Enum):
     DEAD = -1
     WAIT = 0
