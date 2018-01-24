@@ -6,9 +6,10 @@ Organisms for the sim, such as food and regular creatures.
 """
 
 from .constants import Moves, Directions
+from .static_objects import CritterBoxObject
 
 
-class Protozoa():
+class Protozoa(CritterBoxObject):
     """An unintelligent organism: the blueprint for derivative organisms.
 
     It needs water and food to survive. With each tick, it consumes one point of
@@ -61,6 +62,8 @@ class Protozoa():
             environment at that location."""
         return self.default_move
 
+    # TODO: age and move are "server-side" functions: they should be dictated
+    #       by the worlds module, not by the organism, itself.
     def age(self, move):
         """Processes all the things that happen to a creature's body during a
         regular time cycle."""
@@ -79,13 +82,6 @@ class Protozoa():
             self.alive = False
             move = Moves.DEAD
         return move
-
-    def rotate(self, clockwise = True):
-        """Changes the creature's cardinal orientation."""
-        cur_dir = ORDER_OF_CARDINAL_DIRECTIONS.index(self.orientation)
-        rotate_dir = -1 if clockwise else 1
-        new_dir = (cur_dir + rotate_dir) % len(ORDER_OF_CARDINAL_DIRECTIONS)
-        self.orientation = ORDER_OF_CARDINAL_DIRECTIONS[new_dir]
 
 
 class Stagnator(Protozoa):

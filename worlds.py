@@ -11,8 +11,9 @@ TODO: add more information to each space of the world
 from random import randint
 from queue import Queue
 
-from . import organisms
-from .constants import StaticObjects, Directions, Moves
+from . import static_objects
+from .organisms import Protozoa
+from .constants import Directions, Moves
 
 
 def get_cardinal_map(grid, x, y, width, height):
@@ -28,13 +29,62 @@ def get_cardinal_map(grid, x, y, width, height):
         # if any of the directions are outside of the boundary of the grid,
         # mark them accordingly
         if coord < 0 or coord >= width * height:
-            directions[direction] = StaticObjects.BOUNDARY
+            directions[direction] = None
         else: # otherwise, just see what's there
             directions[direction] = grid[coord]
     return directions
 
-def is_organism(subject):
-    return issubclass(type(subject), organisms.Protozoa)
+
+class GridSpace():
+    """A container for whatever is inside each space in the grid.
+
+    Params:
+        contents - a CritterBoxObject that the space contains"""
+
+    def __check_is_cbo__(self, obj):
+        """Validates whether something is a CritterBoxObject."""
+        if (obj is not None and not
+                isinstance(obj, static_objects.CritterBoxObject)):
+            raise ValueError("Object must be a CritterBoxObject.")
+
+    def __init__(self, contents = None):
+        self.__check_is_cbo__(contents)
+        self.contents = contents
+
+    def empty(self):
+        """Discard whatever this space was containing.
+
+        Returns the contents."""
+        c = self.contents
+        self.contents = None
+        return c
+
+    def is_empty(self):
+        """Returns whether this space contains nothing."""
+        return self.contents == None
+
+    def put(self, obj):
+        """Place an object into the space."""
+        self.__check_is_cbo__(obj)
+        self.contents = obj
+
+    def move_from(self, other_space):
+        """Moves an object from another space to the current space."""
+        self.put(other_space.empty())
+
+    def contains_organism(self):
+        """Returns whether what's inside this space is an organism."""
+        return issubclass(type(self.contents), Protozoa)
+
+    def contains_edible(self):
+        # in the future, there will be more things to eat than other organisms
+        return self.contains_organism()
+
+    def contains_obstruction(self):
+        return issubclass(type(self.contents), static_objects.Wall)
+
+    def contains_drinkable(self):
+        return issubclass(type(self.contents), static_objects.Water)
 
 
 class BaseWorld():
@@ -51,8 +101,8 @@ class BaseWorld():
     def __init__(self, dimensions = (11, 7), organisms = [], display_type = None, window = None):
         self.width = dimensions[0]
         self.height = dimensions[1]
-        # TODO: Abstract grid and grid spaces into metadata classes
-        self.grid = [StaticObjects.EMPTY] * (self.width * self.height)
+        # TODO: Abstract grid into metadata class
+        self.grid = [GridSpace() for i in range(self.width * self.height)]
         self.organisms = {}
         self.display_type = display_type
         self.print_queue = Queue()
@@ -86,7 +136,7 @@ class BaseWorld():
             elif move is Moves.EAT:
                 in_front = environment[o.orientation]
                 if in_front.contains_organism():
-                    other_o = in_front
+                    other_o = in_front.contents
                     # TODO: damage can be dealt to more things than organisms
                     # TODO: eating does less damage than attacking
                     # Damage the creature we're eating
@@ -104,7 +154,7 @@ class BaseWorld():
                     o.hydration += 1
             elif move is Moves.DRINK:
                 in_front = environment[o.orientation]
-                if in_front != None:
+                if in_front.contains_drinkable():
                     # TODO: different creatures consume water more efficiently than others
                     # TODO: there are different amounts of water in a given area
                     o.hydration += 5
@@ -128,12 +178,14 @@ class BaseWorld():
         # TODO: draw boundaries around the playing area
         for row in range(self.height):
             for col in range(self.width):
-                obj = self.grid[col + (row * self.width)]
-                # TODO: once spaces in the grid are their own class,
-                # we can represent other objects, too.
+                space = self.grid[col + (row * self.width)]
                 representation = ' '
-                if is_organism(obj):
-                    representation = str(obj)[0]
+                if space.contains_organism():
+                    representation = str(space.contents)[0] # organism's representation char
+                elif space.contains_drinkable():
+                    representation = '~' # represent drinkable liquid
+                elif space.contains_obstruction():
+                    representation = '=' # represent impassable objects
                 self.window.addch(row, col, representation)
         line_no = self.height
         while not self.print_queue.empty():
@@ -160,24 +212,34 @@ class BaseWorld():
 
         success = False
         try:
-            if dest >= 0 and self.grid[dest] == StaticObjects.EMPTY:
+            if dest >= 0 and self.grid[dest].is_empty():
                 # if this is an organism, keep track of its location
-                if is_organism(self.grid[index]):
-                    self.organisms[self.grid[index]] = dest
-                self.grid[dest] = self.grid[index]
-                self.grid[index] = StaticObjects.EMPTY
+                if self.grid[index].contains_organism():
+                    self.organisms[self.grid[index].contents] = dest
+                self.grid[dest].move_from(self.grid[index])
                 success = True
         except IndexError:
             pass
 
         return success
 
+    def rotate_organism(self, organism, clockwise = True):
+        """Changes the creature's cardinal orientation.
+
+        Params:
+            organism - a descendant of organisms.Protozoa to rotate
+            clockwise - whether to turn the creature clockwise"""
+        cur_dir = ORDER_OF_CARDINAL_DIRECTIONS.index(organism.orientation)
+        rotate_dir = -1 if clockwise else 1
+        new_dir = (cur_dir + rotate_dir) % len(ORDER_OF_CARDINAL_DIRECTIONS)
+        organism.orientation = ORDER_OF_CARDINAL_DIRECTIONS[new_dir]
+
     def find_empty_space(self):
         """Locates an empty space on the grid."""
         # TODO: this should be moved to the grid object, when it exists
         increment = 1
         base_location = location = randint(0, len(self.grid) - 1)
-        while self.grid[location] != StaticObjects.EMPTY:
+        while not self.grid[location].is_empty():
             location = (base_location + increment**2) % len(self.grid)
             increment += 2
 
@@ -186,11 +248,11 @@ class BaseWorld():
     def add_object(self, obj):
         """Places an object in an empty grid space."""
         location = self.find_empty_space()
-        self.grid[location] = obj
+        self.grid[location].put(obj)
 
     def add_organisms(self, organisms):
         """Adds each organism somewhere to the grid, and tracks that location."""
         for organism in organisms:
             location = self.find_empty_space()
-            self.grid[location] = organism
+            self.grid[location].put(organism)
             self.organisms[organism] = location

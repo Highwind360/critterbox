@@ -33,9 +33,3 @@ ORDER_OF_CARDINAL_DIRECTIONS = [
     Directions.WEST,
     Directions.SOUTH
 ]
-
-
-class StaticObjects(Enum):
-    BOUNDARY = -1
-    EMPTY = 0
-    WALL = 1
