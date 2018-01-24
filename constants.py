@@ -16,6 +16,7 @@ class Moves(Enum):
     RIGHT = 2
     FORWARD = 3
     EAT = 4
+    DRINK = 5
 
 
 class Directions(Enum):

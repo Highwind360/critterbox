@@ -68,29 +68,49 @@ class BaseWorld():
                 self.window = window
 
     def step(self, steplength = 1):
-        """Takes a step steplength times or until all organisms have died.
+        """Takes a step forwards in time.
         
         Returns the number of organisms currently alive."""
-        for i in range(steplength):
-            living_organisms = 0
-            for o in self.organisms.keys():
-                o_x, o_y = self.organisms[o] % self.width, self.organisms[o] // self.width
-                environment = get_cardinal_map(self.grid, o_x, o_y, self.width, self.height)
-                move = o.move(environment)
-                if move is Moves.FORWARD:
-                    self.relocate_by_direction(self.organisms[o], o.orientation)
-                elif move is Moves.LEFT:
-                    o.rotate(Directions.COUNTER_CLOCKWISE)
-                elif move is Moves.RIGHT:
-                    o.rotate(Directions.CLOCKWISE)
-                elif move is Moves.EAT:
-                    in_front = environment[o.orientation]
-                    if issubclass(type(in_front), organisms.Protozoa):
-                        pass # TODO: damage the thing and give calories
-                if o.alive:
-                    living_organisms += 1
-            if living_organisms is 0:
-                return 0
+        living_organisms = 0
+        for o in self.organisms.keys():
+            o_x, o_y = self.organisms[o] % self.width, self.organisms[o] // self.width
+            environment = get_cardinal_map(self.grid, o_x, o_y, self.width, self.height)
+            move = o.move(environment)
+            # TODO: attack, defend
+            if move is Moves.FORWARD:
+                self.relocate_by_direction(self.organisms[o], o.orientation)
+            elif move is Moves.LEFT:
+                self.rotate_organism(o, clockwise = False)
+            elif move is Moves.RIGHT:
+                self.rotate_organism(o)
+            elif move is Moves.EAT:
+                in_front = environment[o.orientation]
+                if in_front.contains_organism():
+                    other_o = in_front
+                    # TODO: damage can be dealt to more things than organisms
+                    # TODO: eating does less damage than attacking
+                    # Damage the creature we're eating
+                    if o.strength > in_front.health:
+                        other_o.health = 0
+                    else:
+                        other_o.health -= o.strength
+                    # TODO: different creatures have different degrees of
+                    #       metabolic efficiency
+                    # TODO: depending on what they eat, they'll get more or
+                    #       less nutrients out of it
+                    # TODO: eating a live creature gives far less nutrients
+                    # Regain calories and hydration from the creature we ate
+                    o.calories += 5
+                    o.hydration += 1
+            elif move is Moves.DRINK:
+                in_front = environment[o.orientation]
+                if in_front != None:
+                    # TODO: different creatures consume water more efficiently than others
+                    # TODO: there are different amounts of water in a given area
+                    o.hydration += 5
+
+            if o.alive:
+                living_organisms += 1
         return living_organisms
 
     def console_print(self, string):
@@ -127,6 +147,7 @@ class BaseWorld():
         """Takes a location and moves it that direction distance spaces.
 
         Returns true on success, and false otherwise."""
+        # TODO: this should also be a grid method
         dest = index
         if direction == Directions.EAST:
             dest += 1

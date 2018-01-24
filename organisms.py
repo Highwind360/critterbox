@@ -13,7 +13,7 @@ class Protozoa():
 
     It needs water and food to survive. With each tick, it consumes one point of
     hydration. Each time it makes a movement, such as rotating, it also
-    consumes a calorie. Note that eating requires two calories.
+    consumes a calorie.
     
     Params:
         ident - a hex word identifying the organism
@@ -24,12 +24,15 @@ class Protozoa():
     symbol = 'P'
     calories = 0
     hydration = 0
+    max_health = 1
+    strength = 1 # the amount of damage it does
     default_move = Moves.WAIT
     # TODO:
-    #   eat/drink
-    #   shelter
+    #   Should eating/fighting take more calories?
     #   reproduce
-    #   health (damaged when bitten or attacked)
+    #   shelter
+    #       Being in too cold a weather will burn calories (to stay warm)
+    #       Being in too hot a weather will burn extra hydration
 
     def __init__(self, ident, alive = True, orientation = Directions.NORTH):
         self.orientation = orientation
@@ -38,6 +41,7 @@ class Protozoa():
             raise ValueError("Parameter 'ident' should be a hex word." + \
                              " Instead got: {}".format(ident))
         self.organism_identifier = ident
+        self.current_health = self.max_health
 
     def __str__(self):
         """Returns the representation of the organism."""
@@ -95,6 +99,4 @@ class Walker(Protozoa):
     symbol = 'W'
     calories = 10
     hydration = 20
-
-    def think(self, info):
-        return Moves.FORWARD
+    default_move = Moves.FORWARD
