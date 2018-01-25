@@ -3,13 +3,11 @@ worlds.py
 highwind
 
 A collection of different worlds in which to run the simulation.
-TODO: add more information to each space of the world
-    What's the temperature?
-    Is there ambient energy there?
 """
 
-from random import randint
 from queue import Queue
+from random import randint
+from functools import wraps
 
 from . import static_objects
 from .organisms import Protozoa
@@ -29,7 +27,7 @@ def get_cardinal_map(grid, x, y, width, height):
         # if any of the directions are outside of the boundary of the grid,
         # mark them accordingly
         if coord < 0 or coord >= width * height:
-            directions[direction] = None
+            directions[direction] = GridSpace(is_boundary = True)
         else: # otherwise, just see what's there
             directions[direction] = grid[coord]
     return directions
@@ -40,16 +38,29 @@ class GridSpace():
 
     Params:
         contents - a CritterBoxObject that the space contains"""
+    # TODO: add more information to each space of the world
+    #    What's the temperature?
+    #    Is there ambient energy there?
 
+    # TODO: make this a decorator
     def __check_is_cbo__(self, obj):
         """Validates whether something is a CritterBoxObject."""
         if (obj is not None and not
                 isinstance(obj, static_objects.CritterBoxObject)):
             raise ValueError("Object must be a CritterBoxObject.")
 
-    def __init__(self, contents = None):
+    def return_false_if_boundary(func):
+        @wraps(func)
+        def function_wrapper(self, *args, **kwargs):
+            if self.is_boundary:
+                return False
+            return func(self, *args, **kwargs)
+        return function_wrapper
+
+    def __init__(self, contents = None, is_boundary = False):
         self.__check_is_cbo__(contents)
         self.contents = contents
+        self.is_boundary = is_boundary
 
     def empty(self):
         """Discard whatever this space was containing.
@@ -61,32 +72,45 @@ class GridSpace():
 
     def is_empty(self):
         """Returns whether this space contains nothing."""
-        return self.contents == None
+        return not self.is_boundary and self.contents == None
 
+    @return_false_if_boundary
     def put(self, obj):
-        """Place an object into the space."""
+        """Place an object into the space.
+
+        Returns true on success"""
         self.__check_is_cbo__(obj)
         self.contents = obj
+        return True
 
+    @return_false_if_boundary
     def move_from(self, other_space):
-        """Moves an object from another space to the current space."""
-        self.put(other_space.empty())
+        """Moves an object from another space to the current space.
 
+        Returns true on success"""
+        self.put(other_space.empty())
+        return True
+
+    @return_false_if_boundary
     def contains_organism(self):
         """Returns whether what's inside this space is an organism."""
         return issubclass(type(self.contents), Protozoa)
 
+    @return_false_if_boundary
     def contains_edible(self):
         # in the future, there will be more things to eat than other organisms
         return self.contains_organism()
 
+    @return_false_if_boundary
     def contains_obstruction(self):
         return issubclass(type(self.contents), static_objects.Wall)
 
+    @return_false_if_boundary
     def contains_drinkable(self):
         return issubclass(type(self.contents), static_objects.Water)
 
 
+# TODO: make the world 3D, like dwarf fortress
 class BaseWorld():
     """The base class for worlds in which the organisms live.
 
@@ -127,6 +151,7 @@ class BaseWorld():
             environment = get_cardinal_map(self.grid, o_x, o_y, self.width, self.height)
             move = o.move(environment)
             # TODO: attack, defend
+            # TODO: refactor these actions into methods
             if move is Moves.FORWARD:
                 self.relocate_by_direction(self.organisms[o], o.orientation)
             elif move is Moves.LEFT:

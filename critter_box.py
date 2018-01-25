@@ -15,6 +15,9 @@ from time import sleep
 from . import worlds
 from . import organisms
 
+WORLD_WIDTH = 23
+WORLD_HEIGHT = 19
+
 
 def get_unique_id():
     """Creates a new unique identifier for keeping track of organisms."""
@@ -30,11 +33,12 @@ def main(window):
         curses.curs_set(False)
         dis_type = "curses"
 
-    # TODO: assign identifiers to organisms and ensure they are all unique
+    # TODO: assign identifiers to organisms and ensure those idents are all unique
+    # TODO: add procedural generation for water and walls
     orgs = [ organisms.Stagnator(i) for i in range(9) ]
-    orgs.append(organisms.Walker(10))
+    orgs.append(organisms.TestDriver(10))
     world = worlds.BaseWorld(organisms = orgs, display_type = dis_type,
-        window = window, dimensions = (51, 31))
+        window = window, dimensions = (WORLD_WIDTH, WORLD_HEIGHT))
 
     simulating = True
     while simulating:

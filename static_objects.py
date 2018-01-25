@@ -10,6 +10,7 @@ class CritterBoxObject():
     pass
 
 
+# TODO: water flows downhill
 class Water(CritterBoxObject):
     """An object representing a pool of water.
 

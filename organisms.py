@@ -87,12 +87,12 @@ class Protozoa(CritterBoxObject):
 class Stagnator(Protozoa):
     """An orgasm that sits in a stationary location until it dies."""
     symbol = 'S'
-    hydration = 10
+    hydration = 100
 
 
 class Walker(Protozoa):
     """An organism that walks straight in a line."""
     symbol = 'W'
-    calories = 10
-    hydration = 20
+    calories = 100
+    hydration = 200
     default_move = Moves.FORWARD
