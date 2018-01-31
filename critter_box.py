@@ -36,7 +36,7 @@ def main(window):
     # TODO: assign identifiers to organisms and ensure those idents are all unique
     # TODO: add procedural generation for water and walls
     orgs = [ organisms.Stagnator(i) for i in range(9) ]
-    orgs.append(organisms.TestDriver(10))
+    orgs.append(organisms.Walker(10))
     world = worlds.BaseWorld(organisms = orgs, display_type = dis_type,
         window = window, dimensions = (WORLD_WIDTH, WORLD_HEIGHT))
 
